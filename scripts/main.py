@@ -10,6 +10,7 @@ import aggregator
 import scorer
 import formatter
 import feishu_webhook
+import dedup
 
 
 def detect_direction(msg: str) -> str:
@@ -52,6 +53,20 @@ def main():
         print("❌ 没抓到任何数据")
         return 1
 
+    # 去重：过滤掉过去 24h 已推送过的 URL
+    total_before = len(items)
+    items, skipped = dedup.filter_new(items)
+    log(f"🧠 去重: 跳过 {skipped} 条已推过，剩 {len(items)}/{total_before} 条候选")
+
+    if not items:
+        msg = f"📭 本次无新上榜热点（过去 24h 已推送过全部 {total_before} 条候选）"
+        try:
+            feishu_webhook.send_text(msg)
+        except Exception as e:
+            log(f"⚠️ webhook 推送失败: {e}")
+        print(msg)
+        return 0
+
     log("🤖 MiniMax 打分…")
     scored = scorer.score_all(items, max_items=60)
 
@@ -64,15 +79,23 @@ def main():
     except Exception as e:
         log(f"⚠️ 存 JSON 失败: {e}")
 
+    # 在报告顶部加一行 "新上榜" 说明
+    pushed_count = len(out["json_items"])
+    header_note = f"🆕 本次新上榜 {pushed_count} 条（24h 内已推过 {skipped} 条已过滤）\n\n"
+    full_report = header_note + out["report"]
+
     # 直接通过 webhook 推送到飞书群，bypass agent LLM 避免重写/幻觉
     try:
-        feishu_webhook.send_text(out["report"])
+        feishu_webhook.send_text(full_report)
         log("✅ 已通过 webhook 推送到群")
-        print(f"✅ 已推送 Top {len(out['json_items'])} 条选题到群组（完整版看上方）")
+        # 推送成功后才把 URL 加入 24h 记忆
+        dedup.mark_pushed([it["url"] for it in out["json_items"] if it.get("url")])
+        log(f"🧠 已记住 {pushed_count} 个 URL，24h 内不重复推送")
+        print(f"✅ 已推送 {pushed_count} 条新上榜选题到群组（完整版看上方）")
     except Exception as e:
         log(f"⚠️ webhook 推送失败: {e}，降级走 stdout")
         # 降级：webhook 失败就把报告打到 stdout，走 agent echo
-        print(out["report"])
+        print(full_report)
     return 0
 
 

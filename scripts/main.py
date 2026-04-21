@@ -16,6 +16,9 @@ import dedup
 def detect_direction(msg: str) -> str:
     """从用户消息里识别方向偏好。"""
     m = (msg or "").lower()
+    # 财经 / 美股 优先检测（容易和"美国"混淆，必须放前面）
+    if any(k in msg for k in ["财经", "美股", "股市", "股票", "大盘", "美联储", "加密", "比特币", "币圈", "BTC", "crypto", "stock", "finance", "wallstreet", "market"]):
+        return "财经"
     if any(k in msg for k in ["ai", "AI", "人工智能", "科技"]):
         return "AI"
     if any(k in msg for k in ["美国", "US", "us news", "美国新闻", "美国本土"]):

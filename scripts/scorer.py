@@ -276,7 +276,7 @@ def _normalize_score(s: dict) -> dict:
 
 
 def score_all(items: list, batch_size: int = 15, max_items: int = 60,
-              parallel: int = 1) -> list:
+              parallel: int = 4) -> list:
     """批量打分。为省成本只打前 max_items 条（按 hotness 排序）。"""
     # 先 prefilter
     before = len(items)

@@ -12,19 +12,27 @@ HEADERS = {
 
 # 按方向分类的 subreddits
 SUBREDDITS = [
-    # AI
+    # AI / 科技
     ("artificial",    "r/artificial",    "AI"),
     ("LocalLLaMA",    "r/LocalLLaMA",    "AI"),
     ("OpenAI",        "r/OpenAI",        "AI"),
     ("singularity",   "r/singularity",   "AI"),
     ("MachineLearning", "r/MachineLearning", "AI"),
+    ("technology",    "r/technology",    "AI"),
 
-    # 美国本土
+    # 美国本土（时事 + 政治）
     ("news",          "r/news",          "美国"),
     ("politics",      "r/politics",      "美国"),
     ("UpliftingNews", "r/UpliftingNews", "美国"),
+    ("Economics",     "r/Economics",     "美国"),
 
-    # 世界
+    # 美股 / 财经
+    ("stocks",        "r/stocks",        "财经"),
+    ("wallstreetbets","r/wallstreetbets","财经"),
+    ("investing",     "r/investing",     "财经"),
+    ("StockMarket",   "r/StockMarket",   "财经"),
+
+    # 世界时事
     ("worldnews",     "r/worldnews",     "世界"),
     ("geopolitics",   "r/geopolitics",   "世界"),
 ]

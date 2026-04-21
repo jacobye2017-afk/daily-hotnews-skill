@@ -169,22 +169,30 @@ SCORING_SYSTEM = """你是短视频选题策划专家。用户会给你一批新
 - visual_impact: 视觉冲击力（能不能拍出吸引眼球的画面）
 - viral_potential: 病毒传播潜力（会不会被转发、模仿）
 
-特别偏好：
-- AI、科技突破（给高分）
-- 美国本土重大事件（给高分）
-- 国际大事件、战争、地缘冲突（给高分）
-- 娱乐八卦、鸡汤、软文（给低分）
-- 太冷门技术细节（给低分）
+🎯 优先级（从高到低）：
+1. **世界时事大事件**（战争/地缘冲突/外交/国际重大突发）→ 最高优先
+2. **AI / 科技突破**（新模型发布、产品重大更新、行业变革）→ 最高优先
+3. **美股 / 财经**（重要财报、美联储动向、大盘/个股异动、加密货币重大事件）→ 最高优先
+4. **美国本土大事**（政治/社会/重大案件/政策）→ 高优先
+5. 其他地区重大新闻 → 中等
+6. 娱乐八卦、鸡汤、软文、太冷门技术细节 → 给低分
 
 对每条，你还要生成：
-- angles: 3 个视频切入角度（每个一句话，具体可拍）
+- title_cn: 中文标题（12-20字，忠实翻译原意，**不要夸张**，保留关键人名/地名/数字）
+- angles: 3 个视频切入角度（中文，每个一句话，具体可拍）
 - keywords: 2-3 个 hashtag（英文，带 #）
 - suggested_duration_sec: 建议时长（30/45/60/90）
 - mood: 基调（energetic/serious/funny/mysterious/shocking）
 
+⚠️ title_cn 铁律：
+- 忠实翻译，不要编造原文没有的信息
+- 保留专有名词：Lebanon→黎巴嫩（不是耶路撒冷），r/news→保持不动
+- 数字、人名、地名一字不差
+- 不加"炸裂""震惊"等夸张词
+
 返回**纯 JSON 数组**，每条对应一个输入条目，不要加 ```json``` 标记。
 格式:
-[{"idx":0,"topicality":8,"visual_impact":7,"viral_potential":9,"angles":["角度1","角度2","角度3"],"keywords":["#AI","#Tech"],"suggested_duration_sec":45,"mood":"energetic"}]
+[{"idx":0,"title_cn":"GPT-5 图像生成能力提升 10 倍","topicality":8,"visual_impact":7,"viral_potential":9,"angles":["角度1","角度2","角度3"],"keywords":["#AI","#Tech"],"suggested_duration_sec":45,"mood":"energetic"}]
 """
 
 
@@ -247,6 +255,7 @@ def _parse_scores_json(raw: str, expected_len: int) -> list:
 
 def _fallback_score():
     return {
+        "title_cn": "",
         "topicality": 5,
         "visual_impact": 5,
         "viral_potential": 5,
@@ -265,6 +274,7 @@ def _normalize_score(s: dict) -> dict:
         except (ValueError, TypeError):
             return 5
     return {
+        "title_cn": (s.get("title_cn") or "").strip(),
         "topicality": _clip(s.get("topicality", 5)),
         "visual_impact": _clip(s.get("visual_impact", 5)),
         "viral_potential": _clip(s.get("viral_potential", 5)),
@@ -317,6 +327,7 @@ def score_all(items: list, batch_size: int = 15, max_items: int = 60,
             "viral_potential": score["viral_potential"],
             "total": score["topicality"] + score["visual_impact"] + score["viral_potential"],
         }
+        item["title_cn"] = score.get("title_cn") or ""
         item["angles"] = score["angles"]
         item["keywords"] = score["keywords"]
         item["suggested_duration_sec"] = score["suggested_duration_sec"]

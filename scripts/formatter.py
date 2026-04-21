@@ -17,6 +17,7 @@ DIRECTION_EMOJI = {
     "美国": "🇺🇸",
     "世界": "🌍",
     "中国": "🇨🇳",
+    "财经": "💰",
     "其他": "📌",
 }
 
@@ -47,7 +48,8 @@ def rank_and_format(items: list, top_n: int = 10, direction: str = None) -> dict
     for i, it in enumerate(top, 1):
         json_items.append({
             "rank": i,
-            "title": it["title"],
+            "title": it["title"],  # 原标题（可能英文，留作溯源）
+            "title_cn": it.get("title_cn") or it["title"],  # 中文标题，缺省降级原标题
             "source": it["source"],
             "url": it.get("url", ""),
             "posted_at": datetime.fromtimestamp(it.get("posted_ts", 0)).isoformat() if it.get("posted_ts") else "",
@@ -75,8 +77,9 @@ def rank_and_format(items: list, top_n: int = 10, direction: str = None) -> dict
         dir_e = DIRECTION_EMOJI.get(item["direction"], "📌")
         s = item["scores"]
 
+        display_title = item.get("title_cn") or item["title"]
         report_lines.append(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        report_lines.append(f"【#{rank}】{dir_e} {item['title']}")
+        report_lines.append(f"【#{rank}】{dir_e} {display_title}")
         report_lines.append(f"     {mood_e} {item['direction']} | {item['source']} | 热度 {item['hotness']}")
         report_lines.append(f"     📊 打分: 话题{s['topicality']}/视觉{s['visual_impact']}/病毒{s['viral_potential']} = {s['total']}/30")
         if item["angles"]:

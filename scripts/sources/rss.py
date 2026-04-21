@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 FEEDS = [
-    # 世界新闻（Reuters/BBC 没有公开 RSS，用这些替代）
+    # 世界时事
     ("http://feeds.bbci.co.uk/news/world/rss.xml",       "BBC World", "世界"),
     ("https://www.aljazeera.com/xml/rss/all.xml",         "Al Jazeera", "世界"),
     ("https://www.theguardian.com/world/rss",             "Guardian World", "世界"),
@@ -12,11 +12,18 @@ FEEDS = [
     # 美国本土
     ("https://www.theguardian.com/us-news/rss",           "Guardian US", "美国"),
     ("http://rss.cnn.com/rss/cnn_us.rss",                 "CNN US", "美国"),
+    ("https://feeds.npr.org/1001/rss.xml",                "NPR US", "美国"),
 
     # AI / 科技
     ("https://techcrunch.com/feed/",                      "TechCrunch", "AI"),
     ("https://www.theverge.com/rss/index.xml",            "The Verge", "AI"),
     ("https://venturebeat.com/category/ai/feed/",         "VentureBeat AI", "AI"),
+
+    # 美股 / 财经
+    ("https://feeds.content.dowjones.io/public/rss/RSSMarketsMain",  "WSJ Markets", "财经"),
+    ("https://www.cnbc.com/id/100003114/device/rss/rss.html",        "CNBC Top News", "财经"),
+    ("https://www.marketwatch.com/rss/topstories",                   "MarketWatch", "财经"),
+    ("https://www.ft.com/markets?format=rss",                        "FT Markets", "财经"),
 ]
 
 

@@ -34,57 +34,37 @@ def detect_top_n(msg: str) -> int:
     return 10
 
 
+def log(msg: str):
+    """进度只写 stderr，不污染 stdout（stdout 会回传给 agent LLM）。"""
+    print(msg, file=sys.stderr, flush=True)
+
+
 def main():
     msg = sys.argv[1] if len(sys.argv) > 1 else ""
-    print(f"📝 收到指令: {msg!r}")
-    print()
-
     direction = detect_direction(msg)
     top_n = detect_top_n(msg)
-    print(f"🧭 方向: {direction}  |  📊 Top: {top_n}")
-    print()
+    log(f"📝 {msg!r} | 🧭 {direction} | 📊 Top {top_n}")
 
-    # 1. 抓取
-    print("=" * 50)
-    print("📡 STEP 1: 抓取全网热点")
-    print("=" * 50)
+    log("📡 抓取全网热点…")
     items = aggregator.fetch_all()
     if not items:
         print("❌ 没抓到任何数据")
         return 1
 
-    # 2. AI 打分
-    print()
-    print("=" * 50)
-    print("🤖 STEP 2: MiniMax 打分")
-    print("=" * 50)
+    log("🤖 MiniMax 打分…")
     scored = scorer.score_all(items, max_items=60)
 
-    # 3. 排序 + 格式化
-    print()
-    print("=" * 50)
-    print("🎬 STEP 3: 生成选题报告")
-    print("=" * 50)
+    log("🎬 生成选题报告…")
     out = formatter.rank_and_format(scored, top_n=top_n, direction=direction)
 
-    # 存 JSON 留档
     try:
         json_path = formatter.save_json(out["json_items"])
-        print(f"💾 JSON 已存档: {json_path}")
+        log(f"💾 JSON 存档: {json_path}")
     except Exception as e:
-        print(f"⚠️ 存 JSON 失败: {e}")
+        log(f"⚠️ 存 JSON 失败: {e}")
 
-    print()
+    # stdout 只输出最终报告（回传给 agent / 用户）
     print(out["report"])
-
-    # 最后再打印 JSON（方便手动 copy 给 4090）
-    print()
-    print("=" * 50)
-    print("📋 STRUCTURED JSON (copy to 4090)")
-    print("=" * 50)
-    import json
-    print(json.dumps(out["json_items"], ensure_ascii=False, indent=2))
-
     return 0
 
 
